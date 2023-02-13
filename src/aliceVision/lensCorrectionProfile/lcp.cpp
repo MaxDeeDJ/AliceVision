@@ -1083,6 +1083,11 @@ LCPinfo* LCPdatabase::findLCP(
                  const int lensID,
                  int rawMode)
 {
+    if (cameraMake.empty() || lensModel.empty())
+    {
+        return nullptr;
+    }
+
     const std::string reducedCameraMake = reduceString(cameraMake);
     const std::string reducedCameraModel = _omitCameraModel ? reducedCameraMake : reduceString(cameraModel);
     const std::string reducedLensModel = reduceString(lensModel);

@@ -398,6 +398,18 @@ int aliceVision_main(int argc, char **argv)
     ALICEVISION_LOG_INFO(lcpStore.size() << " profile(s) stored in the LCP database.");
   }
 
+  // Try to initialize the DCP and LCP databases with the first view to speed up loading of next images if captured with the same device
+  sfmData::View& firstView = *(std::next(viewPairItBegin, 0)->second);
+  if (!dcpDatabase.empty())
+  {
+      image::DCPProfile dcpProf;
+      dcpDatabase.getDcpForCamera(firstView.getMetadataMake(), firstView.getMetadataModel(), dcpProf);
+  }
+  if (!lcpStore.empty())
+  {
+      LCPinfo* lcpData = lcpStore.findLCP(firstView.getMetadataMake(), firstView.getMetadataModel(), firstView.getMetadataLensModel(), firstView.getMetadataLensID(), 1);
+  }
+
   #pragma omp parallel for
   for (int i = 0; i < sfmData.getViews().size(); ++i)
   {
@@ -540,10 +552,7 @@ int aliceVision_main(int argc, char **argv)
         const std::string& lensModel = view.getMetadataLensModel();
         const int lensID = view.getMetadataLensID();
 
-        if (!make.empty() && !lensModel.empty())
-        {
-            lcpData = lcpStore.findLCP(make, model, lensModel, lensID, 1);
-        }
+        lcpData = lcpStore.findLCP(make, model, lensModel, lensID, 1);
     }
 
     // check if the view intrinsic is already defined
